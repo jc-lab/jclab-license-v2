@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package kr.jclab.license.proto;
+option java_multiple_files = true;
+option java_package = "kr.jclab.license.proto";
+option java_outer_classname = "LicenseProto";
+option go_package = "github.com/jc-lab/jclab-license-v2/license_proto";
+
+message TimecenseKey {
+  string module = 1;
+  string id = 2;
+  int32  version_limit = 3;
+  bytes  key = 4;
+}
+
+message LicensePack {
+  // unix epoch time as milliseconds
+  int64 issued_at = 1;
+
+  string licensee_name = 10;
+  string licensee_email = 11;
+
+  repeated string licensed_product = 20;
+
+  int32 timecense_max_version = 30;
+  repeated TimecenseKey timecense_key = 31;
+
+  map<string, bytes> attribute = 100;
+}
