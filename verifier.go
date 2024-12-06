@@ -10,10 +10,13 @@ import (
 	"go.mozilla.org/pkcs7"
 	"google.golang.org/protobuf/proto"
 	"strings"
+	"time"
 )
 
 type Result struct {
 	*license_proto.LicensePack
+	// Expired subscription has expired
+	Expired bool
 }
 
 //go:embed internal/jclabconstant/jclab_license_authority.der
@@ -61,7 +64,13 @@ func Verify(input []byte) (Result, error) {
 	if err = proto.Unmarshal(p7.Content, result.LicensePack); err != nil {
 		return result, err
 	}
-	_ = signerCert
+
+	now := time.Now()
+	if result.GetLicenseType() == license_proto.LicenseType_kSubscribe {
+		expireAt := time.UnixMicro(result.LicenseExpireAt)
+		result.Expired = now.After(expireAt)
+	}
+
 	return result, nil
 }
 
