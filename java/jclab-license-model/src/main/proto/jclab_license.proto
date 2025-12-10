@@ -8,7 +8,7 @@ option go_package = "github.com/jc-lab/jclab-license-v2/license_proto";
 
 message TimecenseKey {
   string module = 1;
-  string id = 2;
+  bytes  id = 2; // key_id (8 bytes, 64 bits)
   int32  version_limit = 3;
   bytes  key = 4;
 }
