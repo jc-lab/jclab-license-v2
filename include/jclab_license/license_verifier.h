@@ -1,24 +1,11 @@
 #pragma once
 
 #include <string_view>
+#include <memory>
 
-#include "jclab_license/generated/jclab_license.h"
+#include "license_info.h"
 
 namespace jclab_license {
-
-using LicensePack = ::kr::jclab::license::proto::LicensePack<
- 256, // name
- 256, // email
- 16, // product rep
- 256, // product
- 256, // timecense_key_REP
- 256, // module
- 256, // id
- 256, // key
- 256, // attribute_REP
- 256, // key
- 8192 // value
->;
 
 class LicenseVerifier {
  public:
@@ -26,7 +13,7 @@ class LicenseVerifier {
 
   struct VerifyResult {
     bool verified;
-    LicensePack pack;
+    std::shared_ptr<LicensePack> pack;
     uint8_t hash_sha256[32];
   };
 

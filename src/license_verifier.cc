@@ -1,4 +1,7 @@
+#include <string>
 #include <vector>
+
+#include <string.h>
 
 #include "read_buffer_read_only.h"
 
@@ -11,7 +14,23 @@
 #include <mbedtls/base64.h>
 #include <psa/crypto.h>
 
+#include "jclab_license/generated/jclab_license.h"
+
 namespace jclab_license {
+
+using LicensePackProto = ::kr::jclab::license::proto::LicensePack<
+ 256, // name
+ 256, // email
+ 16, // product rep
+ 256, // product
+ 256, // timecense_key_REP
+ 256, // module
+ 256, // id
+ 256, // key
+ 256, // attribute_REP
+ 256, // key
+ 8192 // value
+>;
 
 namespace {
 // 1.3.6.1.4.1.62615.10.3.1501
@@ -77,7 +96,40 @@ LicenseVerifier::VerifyResult LicenseVerifierImpl::verifyDER(const uint8_t* der,
     result.verified = true;
 
     ReadBufferReadOnly read_buffer(verify_result.data.data(), verify_result.data.size());
-    result.pack.deserialize(read_buffer);
+
+    LicensePackProto pack_proto;
+    pack_proto.deserialize(read_buffer);
+
+    result.pack = std::make_shared<LicensePack>();
+    result.pack->issued_at = pack_proto.get_issued_at();
+    result.pack->licensee_name.assign(pack_proto.get_licensee_name().get_const(), pack_proto.get_licensee_name().get_length());
+    result.pack->licensee_email.assign(pack_proto.get_licensee_email().get_const(), pack_proto.get_licensee_email().get_length());
+    for (int i=0; i<pack_proto.get_licensed_product().get_length(); i++) {
+        auto const& item = pack_proto.get_licensed_product().get_const(i);
+        result.pack->licensed_product.push_back(std::string(item.get_const(), item.get_length()));
+    }
+    result.pack->license_type = (LicenseType) pack_proto.get_license_type();
+    result.pack->license_expire_at = pack_proto.get_license_expire_at();
+    result.pack->timecense_max_version = pack_proto.get_timecense_max_version();
+    for (int i=0; i<pack_proto.get_timecense_key().get_length(); i++) {
+        auto const& item = pack_proto.get_timecense_key().get_const(i);
+        TimecenseKey key;
+        key.module.assign(item.get_module().get_const(), item.get_module().get_length());
+        memcpy(key.id, item.get_id().get_const(), sizeof(key.id));
+        key.version_limit = item.get_version_limit();
+        const uint8_t *key_begin = item.get_key().get_const();
+        const uint8_t *key_end = key_begin + item.get_key().get_length();
+        key.key.assign(key_begin, key_end);
+        result.pack->timecense_key.push_back(std::move(key));
+    }
+    for (int i=0; i<pack_proto.get_attribute().get_length(); i++) {
+        auto const& item = pack_proto.get_attribute().get_const(i);
+        std::string key(item.get_key().get_const(), item.get_key().get_length());
+        const uint8_t *value_begin = item.get_value().get_const();
+        const uint8_t *value_end = value_begin + item.get_value().get_length();
+        std::vector<uint8_t> value(value_begin, value_end);
+        result.pack->attribute[std::move(key)] = std::move(value);
+    }
 
     return result;
 }

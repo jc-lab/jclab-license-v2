@@ -33,6 +33,8 @@ add_custom_command(
 )
 
 add_library(jclab_license STATIC
+        include/jclab_license/license_info.h
+        include/jclab_license/license_verifier.h
         src/read_buffer_read_only.cc
         src/read_buffer_read_only.h
         src/license_verifier.cc
@@ -46,13 +48,11 @@ add_dependencies(jclab_license generate_headers)
 
 target_include_directories(jclab_license PUBLIC include)
 target_include_directories(jclab_license PRIVATE src)
-target_link_libraries(jclab_license PUBLIC
-        embedded_proto
-)
 target_link_libraries(jclab_license PRIVATE
         mbedtls
         mbedx509
         mbedtls_pkcs7_ex
+        embedded_proto
 )
 
 add_subdirectory(test)
