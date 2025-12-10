@@ -20,17 +20,17 @@ add_custom_target(generate_headers DEPENDS
 set(PROTO_FILE ${CMAKE_CURRENT_SOURCE_DIR}/java/jclab-license-model/src/main/proto/jclab_license.proto)
 set(GENERATED_PROTO_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license.h)
 
-add_custom_command(
-    OUTPUT ${GENERATED_PROTO_HEADER}
-    COMMAND ${CMAKE_COMMAND} -E make_directory include/jclab_license/generated
-    COMMAND ${CMAKE_COMMAND} -E env "PATH=${CMAKE_CURRENT_SOURCE_DIR}/third_party/EmbeddedProto/venv/bin:/usr/local/bin:/usr/bin:/bin"
-            protoc
-            --plugin=protoc-gen-eams=${CMAKE_CURRENT_SOURCE_DIR}/third_party/EmbeddedProto/venv/bin/protoc-gen-eams
-            --eams_out=${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated
-            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/java/jclab-license-model/src/main/proto
-            ${PROTO_FILE}
-    DEPENDS ${PROTO_FILE}
-)
+#add_custom_command(
+#    OUTPUT ${GENERATED_PROTO_HEADER}
+#    COMMAND ${CMAKE_COMMAND} -E make_directory include/jclab_license/generated
+#    COMMAND ${CMAKE_COMMAND} -E env "PATH=${CMAKE_CURRENT_SOURCE_DIR}/third_party/EmbeddedProto/venv/bin:/usr/local/bin:/usr/bin:/bin"
+#            protoc
+#            --plugin=protoc-gen-eams=${CMAKE_CURRENT_SOURCE_DIR}/third_party/EmbeddedProto/venv/bin/protoc-gen-eams
+#            --eams_out=${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated
+#            --proto_path=${CMAKE_CURRENT_SOURCE_DIR}/java/jclab-license-model/src/main/proto
+#            ${PROTO_FILE}
+#    DEPENDS ${PROTO_FILE}
+#)
 
 set(BLAKE2_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/BLAKE2/ref)
 add_library(jclab_license STATIC
