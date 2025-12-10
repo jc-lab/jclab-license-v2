@@ -1,0 +1,9 @@
+[submodule "third_party/EmbeddedProto"]
+	path = third_party/EmbeddedProto
+	url = https://github.com/Embedded-AMS/EmbeddedProto.git
+[submodule "third_party/mbedtls"]
+	path = third_party/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls.git
+[submodule "third_party/mbedtls-pkcs7-ex"]
+	path = third_party/mbedtls-pkcs7-ex
+	url = https://github.com/jc-lab/mbedtls-pkcs7-ex.git
