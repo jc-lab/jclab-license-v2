@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "../crypto_provider.h"
+#include "../../../include/jclab_license/crypto/provider.h"
 
 namespace jclab_license {
 namespace crypto {
@@ -18,6 +18,13 @@ class MbedtlsProvider : public Provider {
     const std::string_view& cert_key_usage,
     const std::string_view& content_type_oid
   ) const override;
+
+  int aesGcmDecrypt(
+      std::string_view key,
+      std::string_view iv,
+      std::string_view aad,
+      std::string_view ciphertext_with_tag,
+      std::vector<uint8_t>& plaintext_out) const override;
 };
 
 }  // namespace mbedtls

@@ -32,22 +32,31 @@ add_custom_command(
     DEPENDS ${PROTO_FILE}
 )
 
+set(BLAKE2_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/BLAKE2/ref)
 add_library(jclab_license STATIC
         include/jclab_license/license_info.h
         include/jclab_license/license_verifier.h
+        include/jclab_license/timecense.h
+        include/jclab_license/crypto/provider.h
         src/read_buffer_read_only.cc
         src/read_buffer_read_only.h
         src/license_verifier.cc
-        src/crypto/crypto_provider.h
+        src/license_info.cc
+        src/timecense.cc
         src/crypto/mbedtls/mbedtls_provider.h
         src/crypto/mbedtls/mbedtls_provider.cc
+
         ${GENERATED_PROTO_HEADER}
+
+        ${BLAKE2_SRC_DIR}/blake2.h
+        ${BLAKE2_SRC_DIR}/blake2-impl.h
+        ${BLAKE2_SRC_DIR}/blake2b-ref.c
 )
 
 add_dependencies(jclab_license generate_headers)
 
 target_include_directories(jclab_license PUBLIC include)
-target_include_directories(jclab_license PRIVATE src)
+target_include_directories(jclab_license PRIVATE src ${BLAKE2_SRC_DIR})
 target_link_libraries(jclab_license PRIVATE
         mbedtls
         mbedx509

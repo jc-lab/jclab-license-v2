@@ -6,7 +6,10 @@
 
 #include <mbedtls/md.h>
 #include <mbedtls/x509_crt.h>
+#include <psa/crypto.h>
 #include <pkcs7_ex.h>
+
+#define GCM_TAG_LENGTH 16
 
 namespace jclab_license {
 namespace crypto {
@@ -106,6 +109,69 @@ Provider::VerifyResult MbedtlsProvider::verify(
 
   std::vector<uint8_t> data(view->content, view->content + view->content_len);
   return { true, std::move(data) };
+}
+
+int MbedtlsProvider::aesGcmDecrypt(
+    std::string_view key,
+    std::string_view iv,
+    std::string_view aad,
+    std::string_view ciphertext_with_tag,
+    std::vector<uint8_t>& plaintext_out
+) const {
+    psa_status_t status = PSA_SUCCESS;
+
+    // PSA Crypto 초기화 (전역적으로 한 번만 해도 됨)
+    status = psa_crypto_init();
+    if (status != PSA_SUCCESS) {
+        fprintf(stderr, "psa_crypto_init failed: %d\n", status);
+        return status;
+    }
+
+    const uint8_t* ciphertext = reinterpret_cast<const uint8_t*>(ciphertext_with_tag.data());
+
+    // 키 설정
+    psa_key_attributes_t key_attr = PSA_KEY_ATTRIBUTES_INIT;
+    psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_DECRYPT);
+    psa_set_key_algorithm(&key_attr, PSA_ALG_GCM);
+    psa_set_key_type(&key_attr, PSA_KEY_TYPE_AES);
+    psa_set_key_bits(&key_attr, key.size() * 8);
+
+    psa_key_id_t key_id;
+    status = psa_import_key(&key_attr,
+                            reinterpret_cast<const uint8_t*>(key.data()),
+                            key.size(),
+                            &key_id);
+    if (status != PSA_SUCCESS) {
+        fprintf(stderr, "psa_import_key failed: %d\n", status);
+        return status;
+    }
+
+    // 출력 버퍼 준비
+    plaintext_out.resize(plaintext_out.size());
+
+    // 복호화 수행
+    size_t plaintext_len = 0;
+    status = psa_aead_decrypt(
+        key_id,
+        PSA_ALG_GCM,
+        reinterpret_cast<const uint8_t*>(iv.data()), iv.size(),
+        reinterpret_cast<const uint8_t*>(aad.data()), aad.size(),
+        reinterpret_cast<const uint8_t*>(ciphertext_with_tag.data()), ciphertext_with_tag.size(),
+        plaintext_out.data(), plaintext_out.size(),
+        &plaintext_len
+    );
+
+    // 키 삭제
+    psa_destroy_key(key_id);
+
+    if (status != PSA_SUCCESS) {
+        fprintf(stderr, "psa_aead_decrypt failed: %d\n", status);
+        plaintext_out.clear();
+        return status;
+    }
+
+    plaintext_out.resize(plaintext_len);
+    return PSA_SUCCESS;
 }
 
 }  // namespace mbedtls

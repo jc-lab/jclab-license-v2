@@ -7,7 +7,7 @@
 
 #include "jclab_license/license_verifier.h"
 
-#include "crypto/crypto_provider.h"
+#include "../include/jclab_license/crypto/provider.h"
 #include "crypto/mbedtls/mbedtls_provider.h"
 #include "jclab_license/generated/jclab_license_authority.h"
 
@@ -42,43 +42,34 @@ const unsigned char CONTENT_TYPE_LICENSE_OID[] = { 0x2B, 0x06, 0x01, 0x04, 0x01,
 class LicenseVerifierImpl : public LicenseVerifier {
 private:
     crypto::mbedtls::MbedtlsProvider provider_;
+    TimecenseUtil timecense_util_;
 
 public:
-    LicenseVerifierImpl() : LicenseVerifier() {}
+    LicenseVerifierImpl()
+        : LicenseVerifier(), timecense_util_(&provider_)
+    {}
 
-    VerifyResult verifyB64(const std::string_view& input) override;
-    VerifyResult verifyDER(const std::string_view& der) override;
-    VerifyResult verifyB64(const char* input, int len) override;
-    VerifyResult verifyDER(const uint8_t* der, int len) override;
-};
-
-static LicenseVerifierImpl instance;
-
-LicenseVerifier *LicenseVerifier::getInstance() {
-    psa_crypto_init();
-    return &instance;
-}
-
-LicenseVerifier::VerifyResult LicenseVerifierImpl::verifyB64(const std::string_view& input) {
-    return verifyB64(input.data(), input.length());
-}
-
-LicenseVerifier::VerifyResult LicenseVerifierImpl::verifyDER(const std::string_view& der) {
-    return verifyDER(reinterpret_cast<const uint8_t*>(der.data()), der.length());
-}
-
-LicenseVerifier::VerifyResult LicenseVerifierImpl::verifyB64(const char* input, int len) {
-    size_t out_len;
-    mbedtls_base64_decode(nullptr, 0, &out_len, reinterpret_cast<const unsigned char*>(input), len);
-    std::vector<uint8_t> der(out_len);
-    int ret = mbedtls_base64_decode(der.data(), der.size(), &out_len, reinterpret_cast<const unsigned char*>(input), len);
-    if (ret != 0) {
-        return { false, {} };
+    const TimecenseUtil* getTimecenseUtil() const override {
+        return &timecense_util_;
     }
-    return verifyDER(der.data(), out_len);
-}
 
-LicenseVerifier::VerifyResult LicenseVerifierImpl::verifyDER(const uint8_t* der, int len) {
+    VerifyResult verifyB64(const std::string_view& input) const override {
+        return verifyB64(input.data(), input.length());
+    }
+    VerifyResult verifyDER(const std::string_view& der) const override {
+        return verifyDER(reinterpret_cast<const uint8_t*>(der.data()), der.length());
+    }
+    VerifyResult verifyB64(const char* input, int len) const override {
+        size_t out_len;
+        mbedtls_base64_decode(nullptr, 0, &out_len, reinterpret_cast<const unsigned char*>(input), len);
+        std::vector<uint8_t> der(out_len);
+        int ret = mbedtls_base64_decode(der.data(), der.size(), &out_len, reinterpret_cast<const unsigned char*>(input), len);
+        if (ret != 0) {
+            return { false, {} };
+        }
+        return verifyDER(der.data(), out_len);
+    }
+    VerifyResult verifyDER(const uint8_t* der, int len) const override {
     VerifyResult result = {false};
 
     provider_.hashSha256(result.hash_sha256, {reinterpret_cast<const char*>(der), (size_t)len});
@@ -132,6 +123,14 @@ LicenseVerifier::VerifyResult LicenseVerifierImpl::verifyDER(const uint8_t* der,
     }
 
     return result;
+}
+};
+
+static LicenseVerifierImpl instance;
+
+LicenseVerifier *LicenseVerifier::getInstance() {
+    psa_crypto_init();
+    return &instance;
 }
 
 }  // namespace jclab_license
