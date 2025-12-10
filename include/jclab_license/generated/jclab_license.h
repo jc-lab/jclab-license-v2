@@ -96,10 +96,10 @@ class TimecenseKey final: public ::EmbeddedProto::MessageInterface
 
     static constexpr char const* ID_NAME = "id";
     inline void clear_id() { id_.clear(); }
-    inline ::EmbeddedProto::FieldString<TimecenseKey_id_LENGTH>& mutable_id() { return id_; }
-    inline void set_id(const ::EmbeddedProto::FieldString<TimecenseKey_id_LENGTH>& rhs) { id_.set(rhs); }
-    inline const ::EmbeddedProto::FieldString<TimecenseKey_id_LENGTH>& get_id() const { return id_; }
-    inline const char* id() const { return id_.get_const(); }
+    inline ::EmbeddedProto::FieldBytes<TimecenseKey_id_LENGTH>& mutable_id() { return id_; }
+    inline void set_id(const ::EmbeddedProto::FieldBytes<TimecenseKey_id_LENGTH>& rhs) { id_.set(rhs); }
+    inline const ::EmbeddedProto::FieldBytes<TimecenseKey_id_LENGTH>& get_id() const { return id_; }
+    inline const uint8_t* id() const { return id_.get_const(); }
 
     static constexpr char const* VERSION_LIMIT_NAME = "version_limit";
     inline void clear_version_limit() { version_limit_.clear(); }
@@ -319,7 +319,7 @@ class TimecenseKey final: public ::EmbeddedProto::MessageInterface
 
 
       ::EmbeddedProto::FieldString<TimecenseKey_module_LENGTH> module_;
-      ::EmbeddedProto::FieldString<TimecenseKey_id_LENGTH> id_;
+      ::EmbeddedProto::FieldBytes<TimecenseKey_id_LENGTH> id_;
       EmbeddedProto::int32 version_limit_ = 0;
       ::EmbeddedProto::FieldBytes<TimecenseKey_key_LENGTH> key_;
 

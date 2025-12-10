@@ -2,7 +2,7 @@
 #ifndef JCLAB_LICENSE_AUTHORITY_H_
 #define JCLAB_LICENSE_AUTHORITY_H_
 
-#include <stdint.h>
+#include <cstdint>
 
 static const uint8_t JCLAB_LICENSE_AUTHORITY_DER[] = {
   0x30, 0x82, 0x01, 0xe9, 0x30, 0x82, 0x01, 0x6e, 0xa0, 0x03, 0x02, 0x01,
@@ -48,5 +48,5 @@ static const uint8_t JCLAB_LICENSE_AUTHORITY_DER[] = {
   0xfc, 0x10, 0xe2, 0x55, 0xc6, 0x27, 0x9b, 0x79, 0xdf, 0xd6, 0x07, 0xcd,
   0xb2
 };
-
+unsigned int _home_joseph_jcworkspace_jclab_license_v2_scripts____internal_jclabconstant_jclab_license_authority_der_len = 493;
 #endif // JCLAB_LICENSE_AUTHORITY_H_

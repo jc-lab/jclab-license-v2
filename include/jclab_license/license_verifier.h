@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "jclab_license/generated/jclab-license.h"
+#include "jclab_license/generated/jclab_license.h"
 
 namespace jclab_license {
 

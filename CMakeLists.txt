@@ -13,12 +13,12 @@ add_custom_command(
 )
 add_custom_target(generate_headers DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license_authority.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab-license.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license.h
 )
 
 # Protobuf generation
 set(PROTO_FILE ${CMAKE_CURRENT_SOURCE_DIR}/java/jclab-license-model/src/main/proto/jclab_license.proto)
-set(GENERATED_PROTO_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab-license.h)
+set(GENERATED_PROTO_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license.h)
 
 add_custom_command(
     OUTPUT ${GENERATED_PROTO_HEADER}
