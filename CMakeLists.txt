@@ -9,11 +9,13 @@ add_subdirectory(third_party)
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license_authority.h
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_cert_header.sh
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/internal/jclabconstant/jclab_license_authority.der
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_cert_header.sh
+        ${CMAKE_CURRENT_SOURCE_DIR}/internal/jclabconstant/jclab_license_authority.der
 )
 add_custom_target(generate_headers DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license_authority.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license.h
+#    ${CMAKE_CURRENT_SOURCE_DIR}/include/jclab_license/generated/jclab_license.h
 )
 
 # Protobuf generation
