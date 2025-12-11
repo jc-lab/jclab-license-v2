@@ -126,11 +126,16 @@ public:
 }
 };
 
-static LicenseVerifierImpl instance;
+static LicenseVerifierImpl *instance;
 
 LicenseVerifier *LicenseVerifier::getInstance() {
     psa_crypto_init();
-    return &instance;
+    if (instance) {
+      return instance;
+    }
+    LicenseVerifierImpl* new_instance = new LicenseVerifierImpl();
+    instance = new_instance;
+    return new_instance;
 }
 
 }  // namespace jclab_license

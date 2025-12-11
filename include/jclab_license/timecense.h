@@ -5,6 +5,12 @@
 
 namespace jclab_license {
 
+struct FileKey {
+  uint8_t iv[12];
+  uint8_t key[32];
+};
+
+
 class TimecenseUtil {
  private:
   crypto::Provider* crypto_provider_;
@@ -24,7 +30,13 @@ public:
    * @param salt must 16 bytes
    * @return output BLAKE2B_OUTBYTES (64)
    */
-  std::vector<uint8_t> getFileKey(const std::vector<std::vector<uint8_t>>& keys, const uint8_t* salt, int salt_len) const;
+  FileKey getFileKey(const std::vector<std::vector<uint8_t>>& keys, const uint8_t* salt, int salt_len) const;
+
+  bool aesGcmDecrypt(
+      const FileKey* file_key,
+      std::string_view aad,
+      std::string_view ciphertext_with_tag,
+      std::vector<uint8_t>& plaintext_out) const;
 };
 
 }

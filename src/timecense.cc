@@ -3,6 +3,8 @@
 #include <blake2.h>
 
 #include <jclab_license/timecense.h>
+#define MBEDTLS_DECLARE_PRIVATE_IDENTIFIERS
+#include <mbedtls/private/gcm.h>
 
 namespace jclab_license {
 
@@ -46,14 +48,14 @@ std::vector<uint8_t> TimecenseUtil::getVersionKeyFromLicensedKey(
   return output;
 }
 
-std::vector<uint8_t> TimecenseUtil::getFileKey(const std::vector<std::vector<uint8_t>>& keys, const uint8_t* salt, int salt_len) const {
-  std::vector<uint8_t> output(BLAKE2B_OUTBYTES);
+FileKey TimecenseUtil::getFileKey(const std::vector<std::vector<uint8_t>>& keys, const uint8_t* salt, int salt_len) const {
+  uint8_t output[12+32];
 
   blake2b_state S;
   blake2b_param P;
   memset(&P, 0, sizeof(P));
 
-  P.digest_length = BLAKE2B_OUTBYTES;
+  P.digest_length = sizeof(output);
   P.fanout        = 1;
   P.depth         = 1;
   if (salt && salt_len > 0) {
@@ -69,9 +71,68 @@ std::vector<uint8_t> TimecenseUtil::getFileKey(const std::vector<std::vector<uin
     blake2b_update(&S, key.data(), key.size());
   }
 
-  blake2b_final(&S, output.data(), BLAKE2B_OUTBYTES);
+  blake2b_final(&S, output, BLAKE2B_OUTBYTES);
 
-  return output;
+  FileKey file_key = {};
+  memcpy(file_key.iv, &output[0], sizeof(file_key.iv));
+  memcpy(file_key.key, &output[12], sizeof(file_key.key));
+
+  return file_key;
+}
+
+
+bool TimecenseUtil::aesGcmDecrypt(
+    const FileKey* file_key,
+    std::string_view aad,
+    std::string_view ciphertext_with_tag,
+    std::vector<uint8_t>& plaintext_out
+) const {
+  constexpr size_t TAG_LEN = 16;  // GCM TAG = 128bit
+
+  if (ciphertext_with_tag.size() < TAG_LEN) {
+    return false; // invalid input
+  }
+
+  const size_t ciphertext_len = ciphertext_with_tag.size() - TAG_LEN;
+  const uint8_t* ciphertext = reinterpret_cast<const uint8_t*>(ciphertext_with_tag.data());
+  const uint8_t* tag        = reinterpret_cast<const uint8_t*>(ciphertext_with_tag.data() + ciphertext_len);
+
+  plaintext_out.resize(ciphertext_len);
+
+  mbedtls_gcm_context gcm;
+  mbedtls_gcm_init(&gcm);
+
+  int ret = 0;
+
+  // key length: 128/192/256 bits supported → here use key.size()*8 bits
+  ret = mbedtls_gcm_setkey(
+      &gcm, MBEDTLS_CIPHER_ID_AES,
+      file_key->key,
+      sizeof(file_key->key) * 8);
+  if (ret != 0) {
+    mbedtls_gcm_free(&gcm);
+    return false;
+  }
+
+  ret = mbedtls_gcm_auth_decrypt(
+      &gcm,
+      ciphertext_len,
+      file_key->iv, sizeof(file_key->iv),
+      reinterpret_cast<const uint8_t*>(aad.data()), aad.size(),
+      tag, TAG_LEN,
+      ciphertext,
+      plaintext_out.data()
+  );
+
+  mbedtls_gcm_free(&gcm);
+
+  if (ret != 0) {
+    // 인증 실패 또는 복호화 실패
+    return false;
+  }
+
+  // 정상 복호화 → 성공 시 빈 vector 반환
+  return true;
 }
 
 }
